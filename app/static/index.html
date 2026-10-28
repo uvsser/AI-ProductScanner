@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Product Scanner — Live Camera Shopping System</title>
+  <meta name="description" content="Physical store AI product scanner. Live camera scanning with YOLO, OpenCLIP, Barcode and OCR recognition.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <!-- Top App Navigation Bar -->
+  <header class="app-header">
+    <div class="header-brand">
+      <div class="brand-badge">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 7V5a2 2 0 0 1 2-2h2"/>
+          <path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+          <path d="M21 17v2a2 2 0 0 1-2 2h-2"/>
+          <path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+          <rect x="7" y="7" width="10" height="10" rx="2"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="brand-title">AI Product Scanner</h1>
+        <p class="brand-subtitle">YOLO &middot; OpenCLIP &middot; Barcode &middot; OCR &mdash; Live Camera Shopping</p>
+      </div>
+    </div>
+    <div id="account" class="header-actions"></div>
+  </header>
+
+  <main class="main-container">
+
+    <!-- Auth Panel (Login / Register) -->
+    <section id="authPanel" class="glass-panel auth-card">
+      <div class="auth-header">
+        <div class="auth-logo-ring">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+        </div>
+        <h2>Welcome to AI Product Scanner</h2>
+        <p class="hint">Log in to manage your store catalog and start live camera scanning sessions.</p>
+      </div>
+      <div class="nav-segment">
+        <button class="segment-btn active" data-auth="login">Sign In</button>
+        <button class="segment-btn" data-auth="register">Create Account</button>
+      </div>
+      <form id="authForm" class="styled-form">
+        <label>
+          <span>Email Address</span>
+          <input type="email" id="email" placeholder="huda_exception@gmail.com" required autocomplete="email">
+        </label>
+        <label>
+          <span>Password</span>
+          <input type="password" id="password" placeholder="Minimum 8 characters" minlength="8" required autocomplete="current-password">
+        </label>
+        <button class="btn btn-primary" id="authSubmit" type="submit">Sign In to Dashboard</button>
+      </form>
+      <div class="auth-footer-hint">
+        <span>&#x1F510; Encrypted sessions &middot; User catalog isolation &middot; Tenant-scoped data</span>
+      </div>
+    </section>
+
+    <!-- Authenticated Application Panel -->
+    <div id="appPanel" hidden>
+      <!-- Navigation Bar -->
+      <nav class="nav-segment main-nav" id="mainNav">
+        <button class="segment-btn active" data-page="livePage" id="navLive">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
+          Live Scanner
+          <span class="live-indicator" id="liveIndicator" hidden></span>
+        </button>
+        <button class="segment-btn" data-page="scanPage">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/></svg>
+          Photo Scan
+        </button>
+        <button class="segment-btn" data-page="productPage">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Register Product
+        </button>
+        <button class="segment-btn" data-page="catalogPage">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          My Catalog
+        </button>
+      </nav>
+
+      <!-- PAGE: Live Camera Scanner -->
+      <section id="livePage" class="page">
+        <div class="live-layout">
+
+          <!-- LEFT: Camera Feed Column -->
+          <div class="live-camera-col">
+            <div class="glass-panel camera-panel">
+              <div class="panel-header spread">
+                <div>
+                  <h2>Live Camera</h2>
+                  <p class="hint" id="sessionStatusText">Start a session and activate the camera to begin scanning.</p>
+                </div>
+                <div class="row align-center" style="gap:8px;">
+                  <span id="sessionBadge" class="badge badge-subtle">No Session</span>
+                  <button id="newSessionBtn" class="btn btn-primary">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    New Session
+                  </button>
+                </div>
+              </div>
+
+              <!-- Camera Viewport -->
+              <div class="camera-viewport" id="cameraViewport">
+                <video id="liveVideo" autoplay playsinline muted></video>
+                <canvas id="overlayCanvas"></canvas>
+                <div class="camera-idle-overlay" id="cameraIdleOverlay">
+                  <div class="camera-idle-content">
+                    <div class="camera-idle-icon">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </div>
+                    <p>Camera is off</p>
+                    <span class="hint">Start a session then activate the camera</span>
+                  </div>
+                </div>
+                <div class="scan-ring" id="scanRing" hidden></div>
+                <div class="camera-status-chip" id="cameraStatusChip" hidden>
+                  <span class="chip-dot"></span>
+                  <span id="cameraStatusText">Analyzing&hellip;</span>
+                </div>
+              </div>
+
+              <!-- Camera Controls -->
+              <div class="camera-controls">
+                <button id="startCameraBtn" class="btn btn-primary btn-camera" disabled>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  Start Camera
+                </button>
+                <button id="stopCameraBtn" class="btn btn-danger btn-camera" hidden>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                  Stop Camera
+                </button>
+                <div class="scan-rate-control">
+                  <label for="frameInterval">Scan Rate</label>
+                  <select id="frameInterval">
+                    <option value="500">Fast (0.5s)</option>
+                    <option value="1000" selected>Normal (1s)</option>
+                    <option value="2000">Slow (2s)</option>
+                    <option value="0">Manual only</option>
+                  </select>
+                </div>
+                <button id="captureManualBtn" class="btn btn-secondary btn-camera" disabled>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+                  Capture
+                </button>
+              </div>
+
+              <!-- Candidate detections from last frame -->
+              <div id="liveCandidates" class="live-candidates-area" hidden>
+                <div class="section-title-row">
+                  <h4>Detected in Frame</h4>
+                  <span id="candidateCount" class="badge badge-subtle">0</span>
+                </div>
+                <div id="candidateList" class="candidate-list"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: Live Shopping List Column -->
+          <div class="live-cart-col">
+            <div class="glass-panel shopping-list-panel">
+              <div class="panel-header spread">
+                <div>
+                  <h2>Shopping List</h2>
+                  <p class="hint" id="cartHint">Detected products are automatically added to your cart in real-time.</p>
+                </div>
+                <span id="cartBadge" class="badge badge-subtle">0 items</span>
+              </div>
+
+              <!-- Running Total Banner -->
+              <div class="running-total-bar" id="runningTotalBar">
+                <div class="total-label">Session Total</div>
+                <div class="total-amount" id="totalAmount">0.00 &mdash;</div>
+              </div>
+
+              <!-- Items List -->
+              <div id="sessionItems" class="session-items-scroll">
+                <div class="empty-state">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 8px;display:block;opacity:.4"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                  Cart is empty.<br>Point camera at a product to automatically add it.
+                </div>
+              </div>
+
+              <!-- Session Action Buttons -->
+              <div class="session-actions" id="sessionActions" hidden>
+                <button id="finalizeBtn" class="btn btn-success btn-block">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Checkout &amp; Finalize
+                </button>
+                <button id="cancelSessionBtn" class="btn btn-ghost btn-block">Cancel Session</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- PAGE: Photo Scan and Cart Checkout -->
+      <section id="scanPage" class="glass-panel page" hidden>
+        <div class="panel-header spread">
+          <div>
+            <h2>Photo Scan &amp; Checkout</h2>
+            <p class="hint">Upload a cart/product photo. The multi-modal AI pipeline detects objects, barcodes, and label text.</p>
+          </div>
+          <div class="row align-center">
+            <button id="newCart" class="btn btn-secondary">New Cart</button>
+            <span id="cartStatus" class="badge badge-accent">No active cart</span>
+          </div>
+        </div>
+
+        <div class="scan-grid">
+          <div class="scan-input-column">
+            <form id="scanForm" class="upload-zone">
+              <div class="file-drop-area" id="scanDropArea">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <div class="file-drop-text">
+                  <strong id="scanDropTitle">Click or drop a cart/product image to scan</strong>
+                  <span id="scanDropSubtitle">Supports JPG, PNG, WEBP</span>
+                </div>
+                <input name="file" id="scanFileInput" type="file" accept="image/*" required>
+              </div>
+              <div id="scanPhotoPreview" class="scan-preview-wrapper" hidden>
+                <img id="scanPreviewImg" src="" alt="Selected scan photo">
+                <button type="button" id="clearScanPhotoBtn" class="clear-preview-btn" title="Remove photo">&times;</button>
+              </div>
+              <button class="btn btn-primary btn-block" id="scanSubmitBtn" type="submit">Run Hybrid AI Scan</button>
+            </form>
+
+            <div id="scanMessage" class="status-banner"></div>
+
+            <div class="detections-container">
+              <div class="section-title-row">
+                <h3>Detected Regions &amp; Recognitions</h3>
+                <span id="detectionCount" class="text-muted">0 items</span>
+              </div>
+              <div id="detections" class="detections-list">
+                <div class="empty-state">Scan an image to inspect detections, visual similarity, and OCR results.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="cart-column">
+            <div class="cart-box">
+              <div class="cart-header spread">
+                <h3>Active Shopping Cart</h3>
+                <span class="badge badge-subtle" id="cartItemBadge">0 items</span>
+              </div>
+              <div class="running-total-bar" id="photoCartTotalBar">
+                <div class="total-label">Cart Total</div>
+                <div class="total-amount" id="photoCartTotalAmount">0.00 &mdash;</div>
+              </div>
+              <div id="cartView" class="cart-items-scroll">
+                <div class="empty-state">Cart is currently empty.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE: Register Product -->
+      <section id="productPage" class="glass-panel page" hidden>
+        <div class="panel-header">
+          <h2>Register Catalog Product</h2>
+          <p class="hint">Upload reference angles and optional short video clips to train the visual matcher for your private catalog.</p>
+        </div>
+
+        <form id="productForm" class="styled-form grid-form">
+          <div class="form-row two">
+            <label>
+              <span>Product Title *</span>
+              <input name="title" required maxlength="200" placeholder="e.g. Organic Orange Juice 1L">
+            </label>
+            <label>
+              <span>Barcode / SKU (Optional)</span>
+              <input name="barcode" maxlength="100" placeholder="e.g. 6111234567890 or QR code">
+            </label>
+          </div>
+
+          <label>
+            <span>Product Description</span>
+            <textarea name="description" rows="2" placeholder="Brand, packaging specs, ingredients, net weight..."></textarea>
+          </label>
+
+          <div class="form-row two">
+            <label>
+              <span>Unit Price *</span>
+              <input name="price" type="number" min="0" step="0.01" placeholder="0.00" required>
+            </label>
+            <label>
+              <span>Currency</span>
+              <select name="currency">
+                <option value="MAD">MAD (Dirham)</option>
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (&euro;)</option>
+                <option value="GBP">GBP (&pound;)</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="media-upload-group">
+            <label class="media-upload-label">
+              <span>Reference Images &amp; Video Frames *</span>
+              <div class="file-drop-area compact" id="productDropArea">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <span id="productDropLabel">Select multiple photos from different angles or a short video</span>
+                <input name="files" id="productFileInput" type="file" accept="image/*,video/*" multiple required>
+              </div>
+            </label>
+            <div id="productMediaPreview" class="media-preview-grid" hidden></div>
+          </div>
+
+          <button class="btn btn-primary" type="submit" id="productSubmitBtn">
+            <span>Generate Embeddings &amp; Save Product</span>
+          </button>
+        </form>
+
+        <div id="productMessage" class="status-banner"></div>
+        <div id="productUploadResult" class="upload-result-card" hidden></div>
+      </section>
+
+      <!-- PAGE: My Catalog -->
+      <section id="catalogPage" class="glass-panel page" hidden>
+        <div class="panel-header spread">
+          <div>
+            <h2>My Private Catalog</h2>
+            <p class="hint">Your reference products, stored embeddings, and barcode bindings.</p>
+          </div>
+          <button id="refreshProducts" class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Refresh Catalog
+          </button>
+        </div>
+        <div id="catalog" class="catalog-grid"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <div class="footer-content">
+      <p>AI Product Scanner MVP &middot; Multi-Modal Pipeline (YOLO11n + OpenCLIP + Tesseract OCR + Barcode Engine)</p>
+      <span class="text-muted">Uncertain recognitions must always be reviewed before checkout.</span>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast"></div>
+
+  <script type="module" src="/static/app.js"></script>
+</body>
+</html>

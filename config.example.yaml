@@ -1,0 +1,20 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# config.example.yaml — Template for config.yaml.
+# Copy this file to config.yaml and adjust values for your environment.
+# This file IS committed to Git.
+# ──────────────────────────────────────────────────────────────────────────────
+
+app:
+  access_token_expire_hours: 12
+  max_upload_mb: 100
+  storage_dir: "./storage"
+
+ai:
+  yolo_model: "yolo11n.pt"
+  clip_model_name: "ViT-B-32"
+  clip_pretrained: "laion2b_s34b_b79k"
+
+thresholds:
+  match_threshold: 0.78
+  min_detection_confidence: 0.20
+  video_frame_interval_sec: 1.5
